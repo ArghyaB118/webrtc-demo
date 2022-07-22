@@ -1,3 +1,59 @@
+Machine Setups
+==============
+Server machine: IP:100.71.102.33 or 192.168.100.33
+Client machine: IP:100.71.102.37 or 192.168.100.37
+
+Use the 192.168 channel for cleint-server communication.
+Use the 100.71 channel for X2Go connection.
+
+You may have to run the individual experiments out of the main script in order to understand which network interface is being used. Then you may need to change it in the main script accordingly.
+
+Note:
+1. scream_receiver.cpp, line 108, rtcpFbInterval_ntp = screamRx->getRtcpFbInterval();
+2. scream_receiver.cpp, line 40-41, ackDiff and nReportedRtpPackets
+
+
+Google WebRTC experiments
+=========================
+
+How to run the client on the same computer. (line 1 && line 3)
+.. code-block:: console
+    $ sudo ./main_google.sh
+    $ cd samples && npm start
+    $ chromium-browser --disable-webrtc-encryption http://100.71.102.33:8080/src/content/capture/video-contenthint/
+
+
+
+
+SCReAM related experiments
+==========================
+
+1. Get the scream repository.
+.. code-block:: console
+    $ git clone https://github.com/EricssonResearch/scream.git
+    $ cd scream
+    $ cmake .
+    $ make
+
+
+2. Generate a network BW profile. 
+The python script `network_profile_generator.py` does that and saves the profile in `profile.txt`.
+.. code-block:: console
+    $ python3 network_profile_generator.py
+
+
+3. Finally, run `main.sh` with sudo access on the server computer. (1st line)
+`main.sh` invokes the server with the network BW simulator internally. (2nd line)
+Note: my server is 192.168.100.33 and client is 192.168.100.37; the port used is 8080.
+Instantly invoke the client on the client machine with sudo access. (3rd line)
+.. code-block:: console
+    $ sudo ./main.sh
+    $ scream/bin/scream_bw_test_tx -ect 1 -log scream/test.txt 192.168.100.37 8080 
+    $ sudo sudo bin/scream_bw_test_rx 192.168.100.33 8080
+
+
+
+
 Webcam server
 =============
 
@@ -19,7 +75,8 @@ can connect to from your browser:
 .. code-block:: console
 
     $ python webcam.py
-
+    $ chromium-browser --disable-webrtc-encryption
+Ref: https://peter.sh/experiments/chromium-command-line-switches/#disable-webrtc-encryption
 You can then browse to the following page with your browser:
 
 http://127.0.0.1:8080

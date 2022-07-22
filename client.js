@@ -1,4 +1,8 @@
+// peer connection
 var pc = null;
+
+// data channel
+var dc = null, dcInterval = null;
 
 function negotiate() {
     pc.addTransceiver('video', {direction: 'recvonly'});
@@ -60,6 +64,32 @@ function start() {
             document.getElementById('audio').srcObject = evt.streams[0];
         }
     });
+
+    if (document.getElementById('use-datachannel').checked) {
+        var parameters = JSON.parse(document.getElementById('datachannel-parameters').value);
+
+        dc = pc.createDataChannel('chat', parameters);
+        dc.onclose = function() {
+            clearInterval(dcInterval);
+            dataChannelLog.textContent += '- close\n';
+        };
+        dc.onopen = function() {
+            dataChannelLog.textContent += '- open\n';
+            dcInterval = setInterval(function() {
+                var message = 'ping ' + current_stamp();
+                dataChannelLog.textContent += '> ' + message + '\n';
+                dc.send(message);
+            }, 1000);
+        };
+        dc.onmessage = function(evt) {
+            dataChannelLog.textContent += '< ' + evt.data + '\n';
+
+            if (evt.data.substring(0, 4) === 'pong') {
+                var elapsed_ms = current_stamp() - parseInt(evt.data.substring(5), 10);
+                dataChannelLog.textContent += ' RTT ' + elapsed_ms + ' ms\n';
+            }
+        };
+    }
 
     document.getElementById('start').style.display = 'none';
     negotiate();

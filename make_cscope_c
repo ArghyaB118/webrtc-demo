@@ -1,0 +1,5 @@
+find ./scream/ -name "*.c" >cscope.files
+find ./scream/ -name "*.cc" >>cscope.files
+find ./scream/ -name "*.cpp" >>cscope.files
+find ./scream/ -name "*.h" >>cscope.files
+cscope -R
