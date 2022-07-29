@@ -13,6 +13,40 @@ Note:
 2. scream_receiver.cpp, line 40-41, ackDiff and nReportedRtpPackets
 
 
+To install the L4S supported linux kernel in the server machine:
+.. code-block:: console
+    $ git clone https://github.com/L4STeam/linux.git
+    $ cd linux
+    $ sudo apt install libelf-dev
+    $ cp "/boot/config-$(uname -r)" .config
+    $ vim .config # delete the flag, make the flag empty CONFIG_SYSTEM_TRUSTED_KEYS="" and unset this flag CONFIG_DEBUG_INFO_BTF=n
+    $ make olddefconfig
+    $ scripts/config -m TCP_CONG_PRAGUE
+    $ scripts/config -m NET_SCH_DUALPI2
+    $ ./scripts/config -m TCP_CONG_DCTCP
+    $ ./scripts/config -m TCP_CONG_BBR2
+    $ make -j$(nproc) LOCALVERSION=-prague-1
+    $ sudo make install
+    $ sudo make modules_install
+    $ sudo update-grub
+
+How to purge kernel when it is messed up?
+.. code-block:: console
+    $ dpkg --list | egrep -i --color 'linux-image|linux-headers' | grep prague
+    $ sudo apt-get purge linux-image-5.10.31-3cc3851880a1-prague-37
+    $ sudo apt purge linux-headers-5.10.31-3cc3851880a1-prague-37
+
+
+FFmpeg related tutorial
+=======================
+https://stackoverflow.com/questions/56972903/how-to-read-mkv-bytes-as-video#:~:text=import%20imageio%20%23%20Get%20bytes%20of%20MKV%20video,first%20few%20bytes%20of%20content%20look%20like%20this%3A
+https://stackoverflow.com/questions/63195747/how-to-specify-start-and-end-frames-when-making-a-video-with-ffmpeg
+.. code-block:: console
+    $ ffmpeg -i sample-5s.mp4 -start_number 10 -frames:v 30 -c:a copy -c:v vp9 -b:v 1M output.mkv
+    $ pip3 install imageio
+    $ with open('output.mkv', 'rb') as file: content = file.read()
+
+
 Google WebRTC experiments
 =========================
 
