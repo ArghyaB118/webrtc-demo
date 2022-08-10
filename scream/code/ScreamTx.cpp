@@ -2268,6 +2268,10 @@ void ScreamTx::Stream::updateTargetBitrate(uint32_t time_ntp) {
 		*/
 		targetBitrateH = targetBitrate;
 	}
+	// Arghya: external definition for the predicted throughput
+	extern float predicted_throughput;
+	targetBitrate = std::min(predicted_throughput*0.98f, targetBitrate);
+	targetBitrateH = std::min(predicted_throughput*0.98f, targetBitrateH);
 }
 
 bool ScreamTx::Stream::isRtpQueueDiscard() {

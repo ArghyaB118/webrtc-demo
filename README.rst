@@ -83,9 +83,24 @@ Instantly invoke the client on the client machine with sudo access. (3rd line)
 .. code-block:: console
     $ sudo ./main.sh
     $ scream/bin/scream_bw_test_tx -ect 1 -log scream/test.txt 192.168.100.37 8080 
-    $ sudo sudo bin/scream_bw_test_rx 192.168.100.33 8080
+    $ sudo bin/scream_bw_test_rx 192.168.100.33 8080
 
 
+Running iperf test
+==================
+On client machine 192.168.18.123, run line 1
+On server machine 192.168.18.34, run the rest.
+https://iperf.fr/iperf-doc.php
+https://www.ibm.com/cloud/blog/using-iperf-to-troubleshoot-speed-and-throughput-issues#:~:text=You%20can%20also%20do%20UDP%20tests%20using%20iPerf,The%20UDP%20bandwidth%20would%20be%20sent%20at%20bits%2Fsec.
+.. code-block:: console
+	$ iperf -s -u
+
+	$ sudo tc qdisc del dev eno1 root
+	$ sudo tc qdisc add dev eno1 root handle 1:0 htb
+	$ sudo tc class add dev eno1 parent 1:0 classid 1:1 htb rate 30Mbit burst 30Mbit ceil 30Mbit
+	$ sudo tc filter add dev eno1 parent 1:0 protocol ip prio 1 u32 match ip dst 192.168.18.123/32 flowid 1:1\
+	$ sudo tc class add dev eno1 parent 1:1 classid 1:10 dualpi2 limit 100 target 20 tupdate 16000 alpha 0.3125 beta 3.125 l4s_ect coupling_factor 1 drop_on_overload step_thresh 1ms drop_dequeue split_gso classic_protection 10 [Error: Qdisc "dualpi2" is classless.]
+	$ iperf -i 1 -t 10 -p 5001 -c 192.168.18.123 -b 50M -u
 
 
 Webcam server

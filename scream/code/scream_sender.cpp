@@ -16,6 +16,12 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <sys/timerfd.h>
+
+// included for the tcp socket for prediction
+#include <netdb.h>
+#include <string.h>
+#include <string>
+
 struct itimerval timer;
 struct sigaction sa;
 
@@ -156,6 +162,72 @@ uint32_t getTimeInNtp() {
 // Accumulated pace time, used to avoid starting very short pace timers
 //  this can save some complexity at very higfh bitrates
 float accumulatedPaceTime = 0.0f;
+
+// Arghya: global variables for the socket and predicted throughput.
+float predicted_throughput = 0.0f;
+int clientSocket;
+// Arghya: function to have a tcp listener to have the predicted throughput from the predictor.
+void *tcp_socket(void *arg) {
+    // std::cout << "Creating server socket..." << std::endl;
+    int listening = socket(AF_INET, SOCK_STREAM, 0); 
+    if (listening == -1) 
+    {   
+        // std::cerr << "Can't create a socket!";
+        return NULL; 
+    }   
+
+    struct sockaddr_in hint;
+    hint.sin_family = AF_INET;
+    hint.sin_port = htons(54000);
+    inet_pton(AF_INET, "0.0.0.0", &hint.sin_addr);
+
+    // std::cout << "Binding socket to sockaddr..." << std::endl;
+    if (bind(listening, (struct sockaddr *)&hint, sizeof(hint)) == -1) 
+    {   
+        // std::cerr << "Can't bind to IP/port";
+        return NULL; 
+    }
+
+    // std::cout << "Mark the socket for listening..." << std::endl;
+    if (listen(listening, SOMAXCONN) == -1)
+    {
+        // std::cerr << "Can't listen !";
+        return NULL;
+    }
+
+    sockaddr_in client;
+    socklen_t clientSize = sizeof(client);
+
+    // std::cout << "Accept client call..." << std::endl;
+    clientSocket = accept(listening, (struct sockaddr *)&client, &clientSize);
+
+    // std::cout << "Received call..." << std::endl;
+    if (clientSocket == -1)
+    {
+        // std::cerr << "Problem with client connecting!";
+        return NULL;
+    }
+
+    // std::cout << "Client address: " << inet_ntoa(client.sin_addr) << " and port: " << client.sin_port << std::endl;
+
+    close(listening);
+
+    char buf[4096];
+    while (true) {
+        // clear buffer
+        memset(buf, 0, 4096);
+
+        // wait for a message
+        int bytesRecv = recv(clientSocket, buf, 4096, 0);
+        if (bytesRecv == -1 || bytesRecv == 0)
+		  		return NULL;
+		  predicted_throughput = stof(std::string(buf, 0, bytesRecv)) * 1000.0f;
+    }
+    return NULL;
+}
+
+
+
 
 /*
 	0                   1                   2                   3
@@ -345,6 +417,8 @@ void *createRtpThread(void *arg) {
 
 		uint32_t ts = (uint32_t)(time_ntp / 65536.0 * 90000);
 		float rateTx = screamTx->getTargetBitrate(SSRC)*rateScale;
+		// Arghya: former way to make the change in the sender. 
+		// rateTx = std::min(rateTx, predicted_throughput); //screamTx->setMaxTotalBitrate(rateTx);
 		float randVal = float(rand()) / RAND_MAX - 0.5;
 		int bytes = (int)(rateTx / FPS / 8 * (1.0 + randVal * randRate));
 
@@ -664,6 +738,8 @@ int main(int argc, char* argv[]) {
 	gettimeofday(&tp, NULL);
 	t0 = tp.tv_sec + tp.tv_usec*1e-6 - 1e-3;
 	lastT_ntp = getTimeInNtp();
+	
+	// tcp_socket(); //opening a tcp socket	
 
 	/*
 	* Parse command line
@@ -953,7 +1029,8 @@ int main(int argc, char* argv[]) {
 	pthread_mutex_init(&lock_scream, NULL);
 	pthread_mutex_init(&lock_rtp_queue, NULL);
 	pthread_mutex_init(&lock_pace, NULL);
-
+	// Arghya: parallel thread to run the predictor
+	pthread_create(&rtcp_thread, NULL, tcp_socket, (void*)"Create predictor thread...");
 	/* Create RTP thread */
 	pthread_create(&create_rtp_thread, NULL, createRtpThread, (void*)"Create RTP thread...");
 	if (pushTraffic) {
@@ -1023,6 +1100,7 @@ int main(int argc, char* argv[]) {
 		stopThread = true;
 	}
 	usleep(500000);
+	close(clientSocket); //Arghya: closing the tcp socket.
 	close(fd_outgoing_rtp);
 	if (fp_log)
 		fclose(fp_log);

@@ -2,10 +2,16 @@
 set -x
 
 echo "Experiment run on:" $(date)
-network_interface="enx0050b61c1cf9" # "lo"
+# Note: This may take an additional step to figure out:
+# Run the ping command and capture icmp packets on wireshark with filter ip.dst==192.168.18.123
+# Figure out which interface is used.
+# For me the interface for control plane (100.71.102.x) communication: enxd0374542b1dc
+# The interface for data plane (192.168.18.x) communication: eno1
+network_interface="eno1"  # "enxd0374542b1dc" # "lo"
 
-# delete any preexisting constraint on network BW
-# tc qdisc del dev $network_interface root #not needed anymore
+# delete any preexisting constraint on network BW outside if tc throws error
+# sudo tc qdisc del dev $network_interface root #not needed anymore inside the script
+# sudo tc qdisc add dev enx0050b61c1cf9 root handle 1:0 tbf rate 5000kbit limit 5000kbit burst 5000kbit
 
 # read the BW profile
 declare -a profile=()
@@ -45,6 +51,6 @@ touch ping-stat.csv
 #cd samples/
 # run the scream server & network throttling in parallel
 network_e2e &
-ping -i 0.25 -s 100 -w $lifespan 192.168.100.37 >> ping-stat.csv
+ping -i 0.25 -s 100 -w $lifespan 192.168.18.123 >> ping-stat.csv
 wait
 #npm start

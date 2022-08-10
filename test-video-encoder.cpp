@@ -5,7 +5,7 @@
 
 using namespace std;
 
-//https://stackoverflow.com/questions/29058452/how-to-convert-a-bmp-image-into-byte-array-using-c-program
+// https://stackoverflow.com/questions/29058452/how-to-convert-a-bmp-image-into-byte-array-using-c-program
 
 # define BYTES_PER_PIXEL 4
 # define BITMAP_HEADER 54

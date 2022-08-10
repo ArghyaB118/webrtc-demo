@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libavcodec/avcodec.h>
+extern "C" {
+	#include <libavcodec/avcodec.h>
+}
 #define INBUF_SIZE 4096
 bool stopThread=false;  
  
@@ -89,52 +91,53 @@ int main(int argc, char **argv) {
             data_size -= ret;
 
             if (pkt->size) {
-     			int ret;
-				ret = avcodec_send_packet(c, pkt);
-     			if (ret < 0) {
+     				int ret;
+					ret = avcodec_send_packet(c, pkt);
+     				if (ret < 0) {
          			fprintf(stderr, "Error sending a packet for decoding\n");
          			exit(1);
-     			}
-     			while (ret >= 0) {
+     				}
+     				while (ret >= 0) {
              		ret = avcodec_receive_frame(c, frame);
              		if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-                 		return;
+                 		return 0;
              		else if (ret < 0) { 
                  		fprintf(stderr, "Error during decoding\n");
                  		exit(1);
              		}
-				}
+					}
 
-                /* put sample parameters */
-                c->bit_rate = 400000;
-                /* resolution must be a multiple of two */
-                c->width = 352;
-                c->height = 288;
-                /* frames per second */
-                c->time_base= (AVRational){1,25};
-                c->gop_size = 10; /* emit one intra frame every ten frames */
-                c->max_b_frames=1;
-                c->pix_fmt = PIX_FMT_YUV420P;    
+               /* put sample parameters */
+               c->bit_rate = 400000;
+               /* resolution must be a multiple of two */
+               c->width = 352;
+               c->height = 288;
+               /* frames per second */
+               c->time_base= (AVRational){1,25};
+               c->gop_size = 10; /* emit one intra frame every ten frames */
+               c->max_b_frames=1;
+               c->pix_fmt = AV_PIX_FMT_YUV420P;    
 
-				ret = avcodec_send_frame(c, frame);
- 				if (ret < 0) {
+					ret = avcodec_send_frame(c, frame);
+ 					if (ret < 0) {
          			fprintf(stderr, "Error sending a packet for decoding\n");
          			exit(1);
- 				}
+ 					}
 										
- 				while (ret >= 0) {
+ 					while (ret >= 0) {
          			ret = avcodec_receive_packet(c, pkt);
          			if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-             			return;
+             			return 0;
          			else if (ret < 0) { 
              			fprintf(stderr, "Error during decoding\n");
              			exit(1);
          			}
-				}
-            else if (eof)
-                 break;
-         	}
-        } while (!eof || stopThread);
+					}
+            }
+				else if (eof)
+                break;
+        }
+    } while (!eof || stopThread);
   
     fclose(f);
   
