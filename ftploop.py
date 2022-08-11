@@ -2,7 +2,7 @@
 #################################
 #intended for test clients with 'ftp' test role
 #communicated by Dr. Edward Grinshpun
-#Example: python3 ftploop.py arghya passwd 100.71.102.33 webrtc-demo/sample.mp4
+#Example: python3 ftploop.py arghya password 192.168.18.34 /home/arghya/webrtc-demo/ToS-4k-1920.mov
 #################################
 iversion='1.2'
 ###
@@ -61,18 +61,18 @@ if __name__=='__main__':
     file = sys.argv[4]
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys=None
-    parser=argparse.ArgumentParser()
-    parser.add_argument("--file", help="filename, deafault tears.tar")
-    parser.add_argument("--server", help="server, default 135.112.62.175 ")
+    #parser=argparse.ArgumentParser()
+    #parser.add_argument("--file", help="filename, deafault tears.tar")
+    #parser.add_argument("--server", help="server, default 135.112.62.175 ")
     log='INFO'
-    parser.add_argument('--log', help='One of DEBUG, INFO, ERROR, default '+log)
-    args=parser.parse_args()
-    if args.file:
-        file=args.file
-    if args.server:
-        SERVER=args.server
-    if args.log:
-        log=args.log
+    #parser.add_argument('--log', help='One of DEBUG, INFO, ERROR, default '+log)
+    #args=parser.parse_args()
+    #if args.file:
+    #    file=args.file
+    #if args.server:
+    #    SERVER=args.server
+    #if args.log:
+    #    log=args.log
     setlog(log)
     logging.info("ftploop.py version "+iversion)
     try:
@@ -84,7 +84,7 @@ if __name__=='__main__':
                 x0=0
                 try: 
                     time0=datetime.now().timestamp()   
-                    sftp.get(file, localpath='./'+file, callback=lambda x,y:printProgress(x,y))
+                    sftp.get(file, localpath=file, callback=lambda x,y:printProgress(x,y))
                 except KeyboardInterrupt:
                     logging.info("\n Exiting")
                     clean(file)
