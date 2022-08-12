@@ -2270,8 +2270,19 @@ void ScreamTx::Stream::updateTargetBitrate(uint32_t time_ntp) {
 	}
 	// Arghya: external definition for the predicted throughput
 	extern float predicted_throughput;
-	targetBitrate = std::min(predicted_throughput*0.98f, targetBitrate);
-	targetBitrateH = std::min(predicted_throughput*0.98f, targetBitrateH);
+	extern int predictor;
+	// Arghya: take these actions only for predictor set as 1 or 2
+	if (predictor == 1) {
+		targetBitrate = predicted_throughput*0.98f;
+		targetBitrateH = predicted_throughput*0.98f;
+	}
+	else if (predictor == 2) {
+		targetBitrate = std::min(predicted_throughput*0.98f, targetBitrate);
+		targetBitrateH = std::min(predicted_throughput*0.98f, targetBitrateH);
+	}
+	if (predictor == 1 || predictor == 2) {
+		maxBitrate = predicted_throughput*0.98f;
+	}
 }
 
 bool ScreamTx::Stream::isRtpQueueDiscard() {

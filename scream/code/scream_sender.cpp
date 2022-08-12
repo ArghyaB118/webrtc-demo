@@ -165,7 +165,7 @@ float accumulatedPaceTime = 0.0f;
 
 // Arghya: global variables for the socket and predicted throughput.
 float predicted_throughput = 0.0f;
-int clientSocket;
+int clientSocket, predictor;
 // Arghya: function to have a tcp listener to have the predicted throughput from the predictor.
 void *tcp_socket(void *arg) {
     // std::cout << "Creating server socket..." << std::endl;
@@ -222,7 +222,10 @@ void *tcp_socket(void *arg) {
         if (bytesRecv == -1 || bytesRecv == 0)
 		  		return NULL;
 		  predicted_throughput = stof(std::string(buf, 0, bytesRecv)) * 1000.0f;
-    }
+		  // Arghya: approach to update the maxBitrate parameter from outside
+		  if (predictor == 1 || predictor == 2)
+		  		screamTx->updateBitrateStream(SSRC, minRate*1000.0f, predicted_throughput*0.98f);
+	 }
     return NULL;
 }
 
@@ -811,6 +814,12 @@ int main(int argc, char* argv[]) {
 			}
 			continue;
 		}
+		// Arghya: predictor: 0 = no prediction, 1 = blindly follow prediction, 2 = don't go beyond prediction
+		if (strstr(argv[ix], "-predictor")) {
+			predictor = atoi(argv[ix + 1]);
+			ix += 2;
+			continue;
+		}  
 		if (strstr(argv[ix], "-time")) {
 			runTime = atof(argv[ix + 1]);
 			ix += 2;

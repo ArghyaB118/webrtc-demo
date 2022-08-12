@@ -117,6 +117,6 @@ read_network_profile
 send_prediction &
 network_sanity_test & 
 #network_e2e &
-./scream/bin/scream_bw_test_tx -ect 1 -fps 60 -log $logfile -itemlist -detailed -time $((lifespan+3*interval)) -if $network_interface 192.168.18.123 8080
+./scream/bin/scream_bw_test_tx -ect 1 -predictor 0 -fps 60 -log $logfile -itemlist -detailed -time $((lifespan+3*interval)) -if $network_interface 192.168.18.123 8080
 wait
 

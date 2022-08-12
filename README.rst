@@ -36,15 +36,48 @@ How to purge kernel when it is messed up?
     $ sudo apt-get purge linux-image-5.10.31-3cc3851880a1-prague-37
     $ sudo apt purge linux-headers-5.10.31-3cc3851880a1-prague-37
 
+Download the video from here: http://ftp.nluug.nl/pub/graphics/blender/demo/movies/ToS/ or https://download.blender.org/demo/movies/BBB/
+Setup the desktop:
+.. code-block:: console
+	 $ lsb_release -a #see the ubuntu version, it should be 20.04
+	 $ sudo apt update && sudo apt upgrade
+	 $ python3 --version
+	 $ sudo apt install wireshark-gtk python3-pip
+	 $ sudo apt install git cscope cmake build-essential chromium-browser vlc ffmpeg ubuntu-restricted-extras libavcodec-dev iperf
+	 $ git clone https://github.com/ArghyaB118/webrtc-demo.git
+	 $ sudo apt-cache search libavcodec
+	 $ pip3 install numpy matplotlib pandas 
+
 
 FFmpeg related tutorial
 =======================
-https://stackoverflow.com/questions/56972903/how-to-read-mkv-bytes-as-video#:~:text=import%20imageio%20%23%20Get%20bytes%20of%20MKV%20video,first%20few%20bytes%20of%20content%20look%20like%20this%3A
-https://stackoverflow.com/questions/63195747/how-to-specify-start-and-end-frames-when-making-a-video-with-ffmpeg
+[line 1] https://stackoverflow.com/questions/56972903/how-to-read-mkv-bytes-as-video#:~:text=import%20imageio%20%23%20Get%20bytes%20of%20MKV%20video,first%20few%20bytes%20of%20content%20look%20like%20this%3A 
+[line 2] https://stackoverflow.com/questions/63195747/how-to-specify-start-and-end-frames-when-making-a-video-with-ffmpeg
+[line 4] Check the fps from Metadata
+[line 6] Save frames: https://stackoverflow.com/questions/10957412/fastest-way-to-extract-frames-using-ffmpeg#:~:text=If%20the%20JPEG%20encoding%20step%20is%20too%20performance,quality%20loss%20through%20quantization%20by%20transcoding%20to%20JPEG.
+[line 7] break the videos in a number of frames based on the metadata fps
+https://stackoverflow.com/questions/10957412/fastest-way-to-extract-frames-using-ffmpeg#:~:text=If%20the%20JPEG%20encoding%20step%20is%20too%20performance,quality%20loss%20through%20quantization%20by%20transcoding%20to%20JPEG.
+https://stackoverflow.com/questions/23342658/ffmpeg-converting-a-video-to-8-bit-bmp-frames
+https://stackoverflow.com/questions/28806816/use-ffmpeg-to-resize-image
+[line 9] This is about 20 times faster. We use fast seeking to go to the desired time index and extract a frame, then call ffmpeg several times for every time index.
+[line 10] Output one image every minute, named img001.jpg, img002.jpg, img003.jpg, etc. The %03d dictates that the ordinal number of each output image will be formatted using 3 digits. Change the fps=1/60 to fps=1/30 to capture a image every 30 seconds. Similarly if you want to capture a image every 5 seconds then change fps=1/60 to fps=1/5.
+[line 11] https://superuser.com/questions/1009969/how-to-extract-a-frame-out-of-a-video-using-ffmpeg
+Extra:
+https://www.programmerall.com/article/98572237830/#:~:text=FFMPEG%20Use%20Start_Number%20and%20Frames%3A%20v%20to%20specify,-framerate%2025%20-i%20k%253d.png%20-c%20copy%20-y%20OUTPUT.mp4
+https://stackoverflow.com/questions/2401764/can-ffmpeg-be-used-as-a-library-instead-of-a-standalone-program
+https://stackoverflow.com/questions/10127470/ffmpeg-bitrate-change-dynamically
 .. code-block:: console
     $ ffmpeg -i sample-5s.mp4 -start_number 10 -frames:v 30 -c:a copy -c:v vp9 -b:v 1M output.mkv
-    $ pip3 install imageio
-    $ with open('output.mkv', 'rb') as file: content = file.read()
+    $ pip3 install imageio ## with open('output.mkv', 'rb') as file: content = file.read()
+.. code-block:: console
+	 $ ffmpeg -i sample-5s.mp4 -f ffmetadata in.txt
+	 $ ffprobe -v 0 -of csv=p=0 -select_streams v:0 -show_entries stream=r_frame_rate sample-5s.mp4
+	 $ ffmpeg -i sample-5s.mp4 -s 240x135 -vf fps=1 %03d.bmp
+	 $ ffmpeg -i ../sample-5s.mp4 -r 30/1 $filename%03d.bmp
+	 $ ffmpeg -i ../test/001.bmp -vf scale=320:240 output_320x240.bmp
+	 $ time for i in {0..39} ; do ffmpeg -accurate_seek -ss `echo $i*60.0 | bc` -i input.mp4 -frames:v 1 period_down_$i.bmp ; done
+	 $ ffmpeg -i myvideo.avi -vf fps=1/60 img%03d.jpg
+	 $ ffmpeg -i <input> -vf "select=eq(n\,34)" -vframes 1 out.png
 
 
 Google WebRTC experiments
@@ -102,6 +135,13 @@ https://www.ibm.com/cloud/blog/using-iperf-to-troubleshoot-speed-and-throughput-
 	$ sudo tc class add dev eno1 parent 1:1 classid 1:10 dualpi2 limit 100 target 20 tupdate 16000 alpha 0.3125 beta 3.125 l4s_ect coupling_factor 1 drop_on_overload step_thresh 1ms drop_dequeue split_gso classic_protection 10 [Error: Qdisc "dualpi2" is classless.]
 	$ iperf -i 1 -t 10 -p 5001 -c 192.168.18.123 -b 50M -u
 
+
+Running ftp test
+================
+On server machine 192.168.18.34, run sudo ./test-ftp.sh.
+On client machine 192.168.18.123, run
+.. code-block:: python
+	$ python3 ftploop.py arghya Chang3me! 192.168.18.34 /home/arghya/webrtc-demo/ToS-4k-1920.mov
 
 Webcam server
 =============

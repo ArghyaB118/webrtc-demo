@@ -155,3 +155,10 @@ make
 ```
 
 You need git, cmake, make and g++ installed
+
+### Navigating the Results directory
+All the results stay in scream/Results. 
+- Test0 = No prediction
+- Test1 = Blindly following the oracle
+- Test2 = Only limiting the target bandwidth by the predicted BW
+Tests are of 30Mbps to 1Mbps drop, 30Mbps to 5Mbps drop, 30Mbps to 2Mbps drop, and the sinusoid test.

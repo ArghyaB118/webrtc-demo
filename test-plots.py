@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from pandas import read_csv
 import math
 
-folder = 'scream/ResultsTest3/'
+folder = 'scream/Results/Test0/30to1Run3/'
 data = read_csv(folder + 'test.csv', header=0)
 data = data.iloc[100:-100, :]
 print(data.head())
@@ -13,6 +13,7 @@ print(data.head())
 
 plt.figure()
 plt.plot(data['Time [s]'], data['Media coder bitrate [bps]'])
+plt.axis([None, None, 0, 50000000])
 plt.title('Plot for encoder bitrate')
 plt.xlabel('Time (s)')
 plt.ylabel('Media coder bitrate (bps)')
@@ -20,6 +21,7 @@ plt.savefig(folder + 'encoder_bitrate.png')
 
 plt.figure()
 plt.plot(data['Time [s]'], data['RTT [s]'])
+plt.axis([None, None, 0, 1])
 plt.title('Plot for latency')
 plt.xlabel('Time (s)')
 plt.ylabel('RTT (s)')
@@ -52,6 +54,44 @@ plt.title('Plot for bytes in flight')
 plt.xlabel('Time (s)')
 plt.ylabel('Packets in flight (bytes)')
 plt.savefig(folder + 'flight_bitrate.png')
+
+
+plt.figure()
+plt.plot(data['Time [s]'], data['Transmitted bitrate [bps]'], label="transmitter bitrate")
+plt.plot(data['Time [s]'], data['Media coder bitrate [bps]'], label="encoder bitrate")
+plt.title('Plot for encoded and transmitted bitrate')
+plt.xlabel('Time (s)')
+plt.ylabel('Encoded and Transmitted bitrate (bps)')
+plt.savefig(folder + 'encoded&transmitted_bitrate.png')
+
+
+data1 = data.loc[data['Time [s]'] > 55]
+data1 = data1.loc[data1['Time [s]'] < 125] 
+plt.figure()
+plt.plot(data1['Time [s]'], data1['Media coder bitrate [bps]'])
+plt.axis([None, None, 0, 10000000])
+plt.title('Plot for encoder bitrate')
+plt.xlabel('Time (s)')
+plt.ylabel('Media coder bitrate (bps)')
+plt.savefig(folder + 'encoder_bitrate_zoom3.png')
+
+plt.figure()
+plt.plot(data1['Time [s]'], data1['RTT [s]'])
+plt.axis([None, None, 0, 0.3])
+plt.title('Plot for latency')
+plt.xlabel('Time (s)')
+plt.ylabel('RTT (s)')
+plt.savefig(folder + 'rtt_zoom3.png')
+
+plt.figure()
+plt.plot(data1['Time [s]'], data1['Transmitted bitrate [bps]'])
+plt.axis([None, None, 0, 10000000])
+plt.title('Plot for transmitted bitrate')
+plt.xlabel('Time (s)')
+plt.ylabel('Transmitted bitrate (bps)')
+plt.savefig(folder + 'transmitted_bitrate_zoom3.png')
+
+
 
 
 
